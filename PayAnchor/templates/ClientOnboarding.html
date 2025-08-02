@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Client OnBoarding{% endblock %}
+{% block content %}
+{% load static %}
+
+
+<div class="register-container bg-white p-4 rounded shadow" style="width:50%">
+  <h2 class="text-center mb-4 fw-bold">Client OnBoarding</h2>
+
+  <ul class="nav nav-tabs mb-3" id="onboardingTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" disabled>Basic Info</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="company-tab" data-bs-toggle="tab" data-bs-target="#company" type="button" role="tab" disabled>Company Info</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tabn" disabled >Address</button>
+    </li>
+  </ul>
+
+  <form method="POST" id="onboardingForm" novalidate>
+    {% csrf_token %}
+    <div class="tab-content" id="onboardingTabsContent">
+
+      <!-- Basic Info -->
+      <div class="tab-pane fade show active" id="basic" role="tabpanel">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="full_name" id="fullNameInput" class="form-control" required maxlength="100"/>
+          <div class="invalid-feedback" id="fullNameFeedback">Full name is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" id="emailInput" class="form-control" required />
+          <div class="invalid-feedback">Valid email is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" id="password" class="form-control" required />
+          <div class="invalid-feedback" id="passwordFeedback">Password is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-control" required />
+          <div class="invalid-feedback" id="confirmPasswordFeedback">Please confirm your password.</div>
+        </div>
+        <button type="button" class="btn btn-primary next-tab" id="nextBasic">Next Step</button>
+      </div>
+
+      <!-- Company Info -->
+      <div class="tab-pane fade" id="company" role="tabpanel">
+        <div class="mb-3">
+          <label class="form-label">Company Name</label>
+          <input type="text" name="company_name" class="form-control" required />
+          <div class="invalid-feedback">Company name is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Company Email</label>
+          <input type="email" name="company_email" class="form-control" required />
+          <div class="invalid-feedback">Valid company email is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Business Number</label>
+          <input type="text" name="bussiness_number" class="form-control" required maxlength="9"/>
+          <div class="invalid-feedback">Business number is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Payroll Year</label>
+          <input type="number" name="payrol_year" class="form-control" required />
+          <div class="invalid-feedback">Payroll year is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Industry Type</label>
+          <input type="text" name="industry_type" class="form-control" required />
+          <div class="invalid-feedback">Industry type is required.</div>
+        </div>
+        <button type="button" class="btn btn-secondary prev-tab">Back</button>
+        <button type="button" class="btn btn-primary next-tab">Next Step</button>
+      </div>
+
+      <!-- Address -->
+      <div class="tab-pane fade" id="address" role="tabpanel">
+        <div class="mb-3">
+          <label class="form-label">Address Line 1</label>
+          <input type="text" name="address_line1" class="form-control" required />
+          <div class="invalid-feedback">Address Line 1 is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Address Line 2</label>
+          <input type="text" name="address_line2" class="form-control" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">City</label>
+          <input type="text" name="city" class="form-control" required />
+          <div class="invalid-feedback">City is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Postal Code</label>
+          <input type="number" name="postal_code" class="form-control" required />
+          <div class="invalid-feedback">Postal code is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Province</label>
+          <input type="text" name="province" class="form-control" required />
+          <div class="invalid-feedback">Province is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Country</label>
+          <input type="text" name="country" class="form-control" required />
+          <div class="invalid-feedback">Country is required.</div>
+        </div>
+        <button type="button" class="btn btn-secondary prev-tab">Back</button>
+        <input type="submit" value="Register" class="btn btn-success mt-2" />
+      </div>
+    </div>
+  </form>
+
+  <p class="login-link mt-3 text-center">
+    Already have an account? <a href="/Login">Login here</a>
+  </p>
+</div>
+
+<script src="{% static 'js/client_onboarding.js' %}"></script>
+
+{% endblock %}

@@ -1,0 +1,196 @@
+<style>
+  /* Sidebar base */
+  #sidebar {
+    position: fixed;
+    top: 56px; /* height of header */
+    left: 0;
+    height: calc(100vh - 56px);
+    width: 250px;
+    background-color: #1a1f36;
+    color: #cfd8dc;
+    transition: width 0.3s ease;
+    overflow-x: hidden;
+    z-index: 1030;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Collapsed sidebar */
+  #sidebar.collapsed {
+    width: 70px;
+  }
+
+  /* Nav links */
+  #sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #cfd8dc;
+    font-weight: 500;
+    border-left: 4px solid transparent;
+    transition: background-color 0.2s, border-left-color 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+
+  #sidebar .nav-link:hover,
+  #sidebar .nav-link.active {
+    background-color: #3f51b5;
+    color: #fff;
+    border-left-color: #ffca28;
+  }
+
+  /* Icons in sidebar */
+  #sidebar .nav-link i {
+    font-size: 20px;
+    margin-right: 16px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* Hide labels when collapsed */
+  #sidebar.collapsed .nav-link span {
+    display: none;
+  }
+
+  /* Sidebar footer */
+  #sidebar-footer {
+    margin-top: auto;
+    padding: 15px 20px;
+    font-size: 13px;
+    color: #7f8c8d;
+    text-align: center;
+    border-top: 1px solid #34495e;
+  }
+
+  /* Toggle button */
+  #sidebarToggle {
+    position: fixed;
+    top: 12px;
+    left: 260px;
+    z-index: 1040;
+    background-color: #1abc9c;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: left 0.3s ease;
+  }
+
+  #sidebar.collapsed + #sidebarToggle {
+    left: 80px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    #sidebar {
+      left: -250px;
+      width: 250px;
+      height: 100vh;
+      top: 0;
+      transition: left 0.3s ease;
+    }
+
+    #sidebar.show {
+      left: 0;
+    }
+
+    #sidebar.collapsed {
+      width: 250px;
+    }
+
+    #sidebarToggle {
+      left: 12px;
+      top: 12px;
+    }
+
+    #sidebar.collapsed + #sidebarToggle {
+      left: 12px;
+    }
+  }
+
+  /* Content area */
+  .content {
+    margin-left: 250px;
+    padding: 30px;
+    transition: margin-left 0.3s ease;
+    min-height: calc(100vh - 56px - 50px); /* header and footer */
+  }
+
+  /* Adjust content margin when sidebar collapsed */
+  #sidebar.collapsed ~ .content {
+    margin-left: 70px;
+  }
+
+  /* On small screens, content full width */
+  @media (max-width: 768px) {
+    .content {
+      margin-left: 0;
+    }
+  }
+
+  /* Footer style */
+  footer {
+    background-color: #37474f;
+    color: #cfd8dc;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    box-shadow: 0 -1px 8px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+  }
+
+</style>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <a href="{% url 'Home' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+    <i class="bi bi-house-door-fill"></i><span>Home</span>
+  </a>
+  <a href="{% url 'ClientOnboarding' %}" class="nav-link {% if request.path == '/onboarding/' %}active{% endif %}">
+    <i class="bi bi-person-plus-fill"></i><span>OnBoarding</span>
+  </a>
+  <a href="#" class="nav-link">
+    <i class="bi bi-wallet-fill"></i><span>Payroll</span>
+  </a>
+  <a href="#" class="nav-link">
+    <i class="bi bi-bar-chart-fill"></i><span>Reports</span>
+  </a>
+  <a href="#" class="nav-link">
+    <i class="bi bi-gear-fill"></i><span>Settings</span>
+  </a>
+
+  <div id="sidebar-footer">
+    &copy; 2025 PayAnchor
+  </div>
+</div>
+
+<!-- Toggle Button -->
+<button id="sidebarToggle" aria-label="Toggle Sidebar">
+  <i class="bi bi-list"></i>
+</button>
+
+<!-- Content wrapper -->
+<div class="content">
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+
+  toggleBtn.addEventListener('click', () => {
+    if(window.innerWidth <= 768){
+      sidebar.classList.toggle('show');
+    } else {
+      sidebar.classList.toggle('collapsed');
+    }
+  });
+
+  // Close sidebar on outside click (mobile)
+  window.addEventListener('click', (e) => {
+    if(window.innerWidth <= 768 && sidebar.classList.contains('show') && !sidebar.contains(e.target) && e.target !== toggleBtn){
+      sidebar.classList.remove('show');
+    }
+  });
+</script>
