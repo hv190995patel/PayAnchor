@@ -99,7 +99,7 @@ def check_fullname(request):
     if len(name) > 100:
         return JsonResponse({'valid': False, 'error': 'You have exceed maximum Limit of 100 characters'})
     pattern = r'^[A-Za-z\s]+$'
-    is_valid = bool(re.fullmatch(pattern, name))
+    is_valid = bool(re.fullmatch(pattern, name))    
     return JsonResponse({'valid': is_valid})
     
 def check_email(request):

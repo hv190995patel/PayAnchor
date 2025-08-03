@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   const nextButton = document.getElementById('nextBasic');
   const fullNameInput = document.getElementById('fullNameInput');
   const fullNameFeedback = document.getElementById('fullNameFeedback');
@@ -6,18 +6,57 @@ document.addEventListener("DOMContentLoaded", function () {
   const passwordInput = document.getElementById('password');
   const passwordFeedback = document.getElementById('passwordFeedback');
 
-  // Password complexity function
-  function isPasswordComplex(password) {
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasDigit = /\d/.test(password);
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-    const minLength = password.length >= 8;
-    return hasUpper && hasLower && hasDigit && hasSpecial && minLength;
-  }
+  // ---------------------- Utilities ----------------------
 
-  // Validate basic info to enable/disable Next button
-  function validateBasicInfo() {
+  const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn(...args), delay);
+    };
+  };
+
+  const isPasswordComplex = (password) => {
+    return (
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /\d/.test(password) &&
+      /[^A-Za-z0-9]/.test(password) &&
+      password.length >= 8
+    );
+  };
+
+  const validateInputs = (inputs) => {
+    let isValid = true;
+    inputs.forEach((input) => {
+      if (!input.checkValidity()) {
+        input.classList.add('is-invalid');
+        isValid = false;
+      }
+    });
+    return isValid;
+  };
+
+  const validatePasswordMatch = () => {
+    const confirmPassword = document.querySelector('input[name="confirm_password"]');
+    if (!confirmPassword) return true;
+
+    if (passwordInput.value !== confirmPassword.value) {
+      confirmPassword.classList.add('is-invalid');
+      const feedback = confirmPassword.nextElementSibling;
+      if (feedback && feedback.classList.contains('invalid-feedback')) {
+        feedback.textContent = "Passwords do not match.";
+      }
+      return false;
+    } else {
+      confirmPassword.classList.remove('is-invalid');
+      return true;
+    }
+  };
+
+  // ------------------ Main Basic Info Validation ------------------
+
+  const validateBasicInfo = () => {
     const fullName = fullNameInput.value.trim();
     const email = emailInput.value.trim();
     const password = passwordInput.value;
@@ -25,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let isValid = true;
 
-    // Full name validation
+    // Full Name validation
     if (fullName.length < 5 || fullName.length > 100 || !/^[A-Za-z\s]+$/.test(fullName)) {
       fullNameInput.classList.add('is-invalid');
       fullNameFeedback.textContent = 'Full name must be 5-100 letters only.';
@@ -54,18 +93,69 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     nextButton.disabled = !isValid;
-  }
+  };
 
-  // Full name input event + async validation
-  fullNameInput.addEventListener('input', function () {
-    const fullName = fullNameInput.value.trim();
+  // ------------------ Async Validators ------------------
 
-    if (fullName.length === 0) {
-      fullNameInput.classList.remove('is-invalid');
+  const debouncedFullNameCheck = debounce((name) => {
+    fetch(`/check-fullname/?name=${encodeURIComponent(name)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.valid) {
+          fullNameInput.classList.add('is-invalid');
+          fullNameFeedback.textContent = 'Name is not allowed.';
+          nextButton.disabled = true;
+        } else {
+          fullNameInput.classList.remove('is-invalid');
+          fullNameFeedback.textContent = '';
+          validateBasicInfo();
+        }
+      })
+      .catch(err => {
+        console.error("Full name check failed", err);
+        validateBasicInfo(); // fallback
+      });
+  }, 150);
+
+  const debouncedEmailCheck = debounce(() => {
+    const email = emailInput.value.trim();
+    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+    if (!emailPattern.test(email)) {
+      emailInput.classList.add('is-invalid');
       nextButton.disabled = true;
       return;
     }
 
+    fetch(`/check-email/?email=${encodeURIComponent(email)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.exists) {
+          emailInput.classList.add('is-invalid');
+          const feedback = emailInput.nextElementSibling;
+          if (feedback && feedback.classList.contains('invalid-feedback')) {
+            feedback.textContent = 'Email is already registered.';
+          }
+          nextButton.disabled = true;
+        } else {
+          emailInput.classList.remove('is-invalid');
+          const feedback = emailInput.nextElementSibling;
+          if (feedback) feedback.textContent = '';
+          validateBasicInfo();
+        }
+      })
+      .catch(err => {
+        console.error("Email check failed", err);
+        validateBasicInfo(); // fallback
+      });
+  }, 300);
+
+  // ------------------ Event Listeners ------------------
+
+  fullNameInput.addEventListener('input', () => {
+    const fullName = fullNameInput.value.trim();
+
+    // Instant local validation on input (no delay)
     if (fullName.length < 5) {
       fullNameInput.classList.add('is-invalid');
       fullNameFeedback.textContent = 'Full name must be at least 5 characters.';
@@ -80,109 +170,67 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Async validation for allowed chars (letters + spaces)
-    fetch(`/check-fullname/?name=${encodeURIComponent(fullName)}`)
-      .then(response => response.json())
-      .then(data => {
-        if (!data.valid) {
-          fullNameInput.classList.add('is-invalid');
-          fullNameFeedback.textContent = 'Only letters and spaces are allowed.';
-          nextButton.disabled = true;
-        } else {
-          fullNameInput.classList.remove('is-invalid');
-          fullNameFeedback.textContent = '';
-          validateBasicInfo();
-        }
-      })
-      .catch(error => {
-        console.error('Error checking name:', error);
-        nextButton.disabled = false; // fail open
-      });
-  });
-
-  // Email input event + async validation
-  emailInput.addEventListener('input', function () {
-    const email = emailInput.value.trim();
-    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-
-    if (email.length > 5 && emailPattern.test(email)) {
-      fetch(`/check-email/?email=${encodeURIComponent(email)}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.exists) {
-            emailInput.classList.add('is-invalid');
-            emailInput.nextElementSibling.textContent = 'Email is already registered.';
-            nextButton.disabled = true;
-          } else {
-            emailInput.classList.remove('is-invalid');
-            emailInput.nextElementSibling.textContent = '';
-            validateBasicInfo();
-          }
-        })
-        .catch(error => {
-          console.error('Error checking email:', error);
-          nextButton.disabled = false; // fail open
-        });
-    } else {
-      emailInput.classList.remove('is-invalid');
+    if (!/^[A-Za-z\s]+$/.test(fullName)) {
+      fullNameInput.classList.add('is-invalid');
+      fullNameFeedback.textContent = 'Only letters and spaces are allowed.';
       nextButton.disabled = true;
+      return;
     }
+
+    fullNameInput.classList.remove('is-invalid');
+    fullNameFeedback.textContent = '';
+
+    // Async server validation debounced
+    debouncedFullNameCheck(fullName);
   });
 
-  // Password input event - live validation
+  fullNameInput.addEventListener('blur', validateBasicInfo);
+
+  emailInput.addEventListener('input', () => {
+    emailInput.classList.remove('is-invalid');
+    debouncedEmailCheck();
+  });
+
   passwordInput.addEventListener('input', () => {
+    passwordInput.classList.remove('is-invalid');
+    passwordFeedback.textContent = '';
     validateBasicInfo();
   });
 
-  // Tab navigation & validation for next / previous buttons
+  passwordInput.addEventListener('blur', () => {
+    const password = passwordInput.value;
+    if (!isPasswordComplex(password)) {
+      passwordInput.classList.add('is-invalid');
+      passwordFeedback.textContent = 'Password must be 8+ chars, include uppercase, lowercase, number & special char.';
+      nextButton.disabled = true;
+    } else {
+      passwordInput.classList.remove('is-invalid');
+      passwordFeedback.textContent = '';
+      validateBasicInfo();
+    }
+  });
+
+  // ------------------ Tab Navigation ------------------
+
   document.querySelectorAll('.next-tab').forEach(button => {
     button.addEventListener('click', () => {
       const currentTab = button.closest('.tab-pane');
       const inputs = currentTab.querySelectorAll('input[required]');
-      let isValid = true;
+      let isValid = validateInputs(inputs);
 
-      // Re-run JS validation for password if on basic tab
       if (currentTab.id === "basic") {
         validateBasicInfo();
-      }
-
-      inputs.forEach(input => {
-        if (!input.checkValidity()) {
-          input.classList.add('is-invalid');
-          isValid = false;
-        } else {
-          input.classList.remove('is-invalid');
-        }
-      });
-
-      if (currentTab.id === "basic") {
-        const password = currentTab.querySelector('input[name="password"]');
-        const confirmPassword = currentTab.querySelector('input[name="confirm_password"]');
-        if (password.value !== confirmPassword.value) {
-          confirmPassword.classList.add('is-invalid');
-          confirmPassword.nextElementSibling.textContent = "Passwords do not match.";
-          isValid = false;
-        } else {
-          confirmPassword.classList.remove('is-invalid');
-        }
-
-        // Re-validate password complexity explicitly
-        if (!isPasswordComplex(password.value)) {
-          password.classList.add('is-invalid');
-          passwordFeedback.textContent = 'Password must meet complexity rules.';
-          isValid = false;
-        } else {
-          password.classList.remove('is-invalid');
-        }
+        isValid = isValid && isPasswordComplex(passwordInput.value) && validatePasswordMatch();
       }
 
       if (isValid) {
         const activeTab = document.querySelector('#onboardingTabs .nav-link.active');
-        const nextTab = activeTab.closest('li').nextElementSibling;
-        if (nextTab) {
-          const nextBtn = nextTab.querySelector('button');
-          nextBtn.disabled = false;
-          new bootstrap.Tab(nextBtn).show();
+        const nextTabLi = activeTab.closest('li').nextElementSibling;
+        if (nextTabLi) {
+          const nextTabLink = nextTabLi.querySelector('.nav-link');
+          if (nextTabLink) {
+            new bootstrap.Tab(nextTabLink).show();
+          }
         }
       }
     });
@@ -191,50 +239,32 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('.prev-tab').forEach(button => {
     button.addEventListener('click', () => {
       const activeTab = document.querySelector('#onboardingTabs .nav-link.active');
-      const prevTab = activeTab.closest('li').previousElementSibling;
-      if (prevTab) {
-        const prevBtn = prevTab.querySelector('button');
-        prevBtn.disabled = false;
-        new bootstrap.Tab(prevBtn).show();
+      const prevTabLi = activeTab.closest('li').previousElementSibling;
+      if (prevTabLi) {
+        const prevTabLink = prevTabLi.querySelector('.nav-link');
+        if (prevTabLink) {
+          new bootstrap.Tab(prevTabLink).show();
+        }
       }
     });
   });
 
-  // Remove invalid class on input change globally
-  document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('input', () => {
-      input.classList.remove('is-invalid');
-    });
-  });
+  // ------------------ Final Form Validation ------------------
 
-  // Final form submission validation
-  document.getElementById('onboardingForm').addEventListener('submit', function (e) {
+  document.getElementById('onboardingForm').addEventListener('submit', (e) => {
     const lastTab = document.querySelector('.tab-pane.active');
     const inputs = lastTab.querySelectorAll('input[required]');
-    let isValid = true;
+    let isValid = validateInputs(inputs);
 
-    inputs.forEach(input => {
-      if (!input.checkValidity()) {
-        input.classList.add('is-invalid');
-        isValid = false;
-      } else {
-        input.classList.remove('is-invalid');
-      }
-    });
+    if (!validatePasswordMatch()) isValid = false;
 
-    const password = document.querySelector('input[name="password"]');
-    const confirmPassword = document.querySelector('input[name="confirm_password"]');
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      confirmPassword.classList.add('is-invalid');
-      confirmPassword.nextElementSibling.textContent = "Passwords do not match.";
-      isValid = false;
-    }
     if (!isValid) {
       e.preventDefault();
       alert("Please fill all required fields correctly before submitting.");
     }
   });
 
-  // Initialize disable state on page load
+  // ------------------ Initial State ------------------
+
   nextButton.disabled = true;
 });
