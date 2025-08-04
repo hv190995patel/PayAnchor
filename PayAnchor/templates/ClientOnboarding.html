@@ -36,18 +36,30 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Email</label>
-          <input type="email" autocomplete="off"  name="email" id="emailInput" class="form-control" required />
-          <div class="invalid-feedback">Valid email is required.</div>
+          <input type="email" autocomplete="off"  name="email" id="emailInput" class="form-control {% if form.email.errors %}is-invalid{% endif %}" value="{{ form.email.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.email.errors %}
+              {{ error }}
+            {% endfor %}
+            Valid email is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Password</label>
-          <input type="password" name="password" id="password" class="form-control" required />
-          <div class="invalid-feedback" id="passwordFeedback">Password is required.</div>
+          <input type="password" name="password" id="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" value="{{ form.password.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback" id="passwordFeedback">
+            {% for error in form.password.errors %}
+              {{ error }}
+            {% endfor %}
+            Password is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Confirm Password</label>
-          <input type="password" name="confirm_password" class="form-control" required />
-          <div class="invalid-feedback" id="confirmPasswordFeedback">Please confirm your password.</div>
+          <input type="password" name="confirm_password" class="form-control {% if form.confirm_password.errors %}is-invalid{% endif %}" value="{{ form.confirm_password.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback" id="confirmPasswordFeedback">
+            {% for error in form.confirm_password.errors %}
+              {{ error }}
+            {% endfor %}
+            Please confirm your password.</div>
         </div>
         <button type="button" class="btn btn-primary next-tab" id="nextBasic">Next Step</button>
       </div>
@@ -56,32 +68,58 @@
       <div class="tab-pane fade" id="company" role="tabpanel">
         <div class="mb-3">
           <label class="form-label">Company Name</label>
-          <input type="text" name="company_name" class="form-control" required />
-          <div class="invalid-feedback">Company name is required.</div>
+          <input type="text" name="company_name" class="form-control {% if form.company_name.errors %}is-invalid{% endif %}" value="{{ form.company_name.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.company_name.errors %}
+              {{ error }}
+            {% endfor %}
+            Company name is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Company Email</label>
-          <input type="email" name="company_email" class="form-control" required />
-          <div class="invalid-feedback">Valid company email is required.</div>
+          <input type="email" name="company_email" class="form-control {% if form.company_email.errors %}is-invalid{% endif %}" value="{{ form.company_email.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.company_email.errors %}
+              {{ error }}
+            {% endfor %}
+            Valid company email is required.</div>
         </div>
         <div class="mb-3">
           <label for="businessNumberInput" class="form-label">Business Number</label>
           <div class="d-flex gap-2">
-            <input type="number" name="bussiness_number" class="form-control" placeholder="Business Number" required maxlength="9"/>
-            <input type="text" name="pi_number" class="form-control" placeholder="PI Number" required maxlength="2"/>
-            <input type="number" name="reference_number" class="form-control" placeholder="Reference Number" required maxlength="4"/>
+            <input type="number" name="bussiness_number" class="form-control {% if form.bussiness_number.errors %}is-invalid{% endif %}" value="{{ form.bussiness_number.value|default_if_none:'' }}" placeholder="Business Number" required maxlength="9"/>
+            <input type="text" name="pi_number" class="form-control {% if form.pi_number.errors %}is-invalid{% endif %}" value="{{ form.pi_number.value|default_if_none:'' }}" placeholder="PI Number" required maxlength="2"/>
+            <input type="number" name="reference_number" class="form-control {% if form.reference_number.errors %}is-invalid{% endif %}" value="{{ form.reference_number.value|default_if_none:'' }}" placeholder="Reference Number" required maxlength="4"/>
           </div>
-          <div class="invalid-feedback d-block" id="bnFeedback"></div>
+          <div class="invalid-feedback d-block" id="bnFeedback">
+            {% for error in form.bussiness_number.errors %}
+              {{ error }}<br>
+            {% endfor %}
+            {% for error in form.pi_number.errors %}
+              {{ error }}<br>
+            {% endfor %}
+            {% for error in form.reference_number.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
         </div>
         <div class="mb-3">
           <label class="form-label">Payroll Year</label>
-          <select name="payrol_year" id="yearDropdown" class="form-control" required> </select>
-          <div class="invalid-feedback">Payroll year is required.</div>
+          <select name="payrol_year" id="yearDropdown" class="form-control {% if form.payrol_year.errors %}is-invalid{% endif %}" value="{{ form.payrol_year.value|default_if_none:'' }}" required> </select>
+          <div class="invalid-feedback">
+            {% for error in form.payrol_year.errors %}
+              {{ error }}
+            {% endfor %}
+            Payroll year is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Industry Type</label>
-          <input type="text" name="industry_type" class="form-control" required />
-          <div class="invalid-feedback">Industry type is required.</div>
+          <input type="text" name="industry_type" class="form-control {% if form.industry_type.errors %}is-invalid{% endif %}" value="{{ form.industry_type.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.industry_type.errors %}
+              {{ error }}
+            {% endfor %}
+            Industry type is required.</div>
         </div>
         <button type="button" class="btn btn-secondary prev-tab">Back</button>
         <button type="button" class="btn btn-primary next-tab">Next Step</button>
@@ -91,33 +129,57 @@
       <div class="tab-pane fade" id="address" role="tabpanel">
           <div class="mb-3">
           <label class="form-label">Address Line 1</label>
-          <input type="text" name="address_line1" id="address_line1" class="form-control" required />
-          <div class="invalid-feedback">Address Line 1 is required.</div>
+          <input type="text" name="address_line1" id="address_line1" class="form-control {% if form.address_line1.errors %}is-invalid{% endif %}" value="{{ form.address_line1.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.address_line1.errors %}
+              {{ error }}
+            {% endfor %}
+            Address Line 1 is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Address Line 2</label>
-          <input type="text" name="address_line2" id="address_line2" class="form-control" />
-          <div class="invalid-feedback">Address Line 2 is required.</div>
+          <input type="text" name="address_line2" id="address_line2" class="form-control {% if form.address_line2.errors %}is-invalid{% endif %}" value="{{ form.address_line2.value|default_if_none:'' }}" />
+          <div class="invalid-feedback">
+            {% for error in form.address_line1.errors %}
+              {{ error }}
+            {% endfor %}
+            Address Line 2 is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">City</label>
-          <input type="text" name="city" id="city" class="form-control" required />
-          <div class="invalid-feedback">City is required.</div>
+          <input type="text" name="city" id="city" class="form-control {% if form.city.errors %}is-invalid{% endif %}" value="{{ form.city.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.city.errors %}
+              {{ error }}
+            {% endfor %}
+            City is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Postal Code</label>
-          <input type="text" name="postal_code" id="postal_code" class="form-control" required />
-          <div class="invalid-feedback">Postal code is required.</div>
+          <input type="text" name="postal_code" id="postal_code" class="form-control {% if form.postal_code.errors %}is-invalid{% endif %}" value="{{ form.postal_code.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.postal_code.errors %}
+              {{ error }}
+            {% endfor %}
+            Postal code is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Province</label>
-          <input type="text" name="province" id="province" class="form-control" required />
-          <div class="invalid-feedback">Province is required.</div>
+          <input type="text" name="province" id="province" class="form-control {% if form.province.errors %}is-invalid{% endif %}" value="{{ form.province.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.province.errors %}
+              {{ error }}
+            {% endfor %}
+            Province is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Country</label>
-          <input type="text" name="country" id="country" class="form-control" required />
-          <div class="invalid-feedback">Country is required.</div>
+          <input type="text" name="country" id="country" class="form-control {% if form.country.errors %}is-invalid{% endif %}" value="{{ form.country.value|default_if_none:'' }}" required />
+          <div class="invalid-feedback">
+            {% for error in form.country.errors %}
+              {{ error }}
+            {% endfor %}
+            Country is required.</div>
         </div>
 
         <div class="d-flex justify-content-center gap-3 mt-4">
@@ -135,6 +197,5 @@
   </p>
 </div>
 <script src="{% static 'js/client_onboarding.js' %}?v={{ timestamp }}"></script>
-<script src="{% static 'js/client_onboarding.js' %}"></script>
 
 {% endblock %}
