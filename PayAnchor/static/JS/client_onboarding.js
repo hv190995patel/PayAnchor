@@ -15,26 +15,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const companyTab = document.getElementById("company");
   const companyNameInput = companyTab.querySelector('input[name="company_name"]');
   const companyEmailInput = companyTab.querySelector('input[name="company_email"]');
-  const businessNumberInput = companyTab.querySelector('input[name="bussiness_number"]');
+  const bussinessNumberInput = companyTab.querySelector('input[name="bussiness_number"]');  // updated here
   const piNumberInput = companyTab.querySelector('input[name="pi_number"]');
   const referenceNumberInput = companyTab.querySelector('input[name="reference_number"]');
-  const bnGroup = businessNumberInput.closest('.mb-3');
+  const bnGroup = bussinessNumberInput.closest('.mb-3');
   const bnFeedback = bnGroup.querySelector('#bnFeedback');
-  const payrollyearInput = document.getElementById("yearDropdown"); // payroll year dropdown
+  const payrolYearInput = document.getElementById("yearDropdown"); // updated name here
   const industrytypeInput = companyTab.querySelector('input[name="industry_type"]');
-
-  // Address tab elements
-  const addressTab = document.getElementById("address");
-  const addressLine1Input = addressTab.querySelector('input[name="address_line1"]');
-  const addressLine2Input = addressTab.querySelector('input[name="address_line2"]');
-  const cityInput = addressTab.querySelector('input[name="city"]');
-  const postalcodeInput = addressTab.querySelector('input[name="postal_code"]');
-  const provinceInput = addressTab.querySelector('input[name="province"]');
-  const countryInput = addressTab.querySelector('input[name="country"]');
 
   // Regex Patterns
   const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-  const postalcodePattern = /^[A-Za-z]\d[A-Za-z]\d[A-Za-z]\d$/;
+  const postalcodePattern = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;  // allow optional space
 
   // --- Utilities ---
   const debounce = (fn, delay) => {
@@ -55,6 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   };
 
+  // --- Global state flag to track email validity ---
+  let emailIsValid = false;
+
   // --- Async AJAX checks ---
 
   const debouncedFullNameCheck = debounce(name => {
@@ -74,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
       .catch(() => {
-        // On error, don't block user
         fullNameInput.classList.remove('is-invalid');
         fullNameFeedback.textContent = '';
         checkEnableNext();
@@ -86,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
       emailInput.classList.add('is-invalid');
       if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = 'Invalid email format.';
       nextButton.disabled = true;
+      emailIsValid = false;
       return;
     }
 
@@ -96,26 +90,27 @@ document.addEventListener("DOMContentLoaded", () => {
           emailInput.classList.add('is-invalid');
           if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = 'Email is already registered.';
           nextButton.disabled = true;
+          emailIsValid = false;
         } else {
           emailInput.classList.remove('is-invalid');
           if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = '';
+          emailIsValid = true;
           checkEnableNext();
         }
       })
       .catch(() => {
         emailInput.classList.remove('is-invalid');
         if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = '';
+        emailIsValid = false;
         checkEnableNext();
       });
   }, 300);
 
   // --- Validation functions ---
 
-  // Basic info local validations + async checks
   function validateBasicInfoLocal() {
     let valid = true;
 
-    // Full Name - letters and spaces only, 5-100 chars
     const fullName = fullNameInput.value.trim();
     if (!/^[A-Za-z\s]{5,100}$/.test(fullName)) {
       fullNameInput.classList.add('is-invalid');
@@ -126,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
       fullNameFeedback.textContent = '';
     }
 
-    // Email format
     const email = emailInput.value.trim();
     if (!emailPattern.test(email)) {
       emailInput.classList.add('is-invalid');
@@ -137,7 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = '';
     }
 
-    // Password complexity
     const pwd = passwordInput.value;
     if (!isPasswordComplex(pwd)) {
       passwordInput.classList.add('is-invalid');
@@ -148,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
       passwordFeedback.textContent = '';
     }
 
-    // Confirm password match
     if (confirmPasswordInput) {
       if (confirmPasswordInput.value !== pwd || !confirmPasswordInput.value) {
         confirmPasswordInput.classList.add('is-invalid');
@@ -163,9 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return valid;
   }
 
-  // Check if all basic info validations pass including async checks status (approximate)
   function checkEnableNext() {
-    // Only enable next if local validation passes AND no invalid classes on inputs
     const localValid = validateBasicInfoLocal();
 
     const hasInvalid = fullNameInput.classList.contains('is-invalid') ||
@@ -173,14 +163,12 @@ document.addEventListener("DOMContentLoaded", () => {
       passwordInput.classList.contains('is-invalid') ||
       (confirmPasswordInput && confirmPasswordInput.classList.contains('is-invalid'));
 
-    nextButton.disabled = !(localValid && !hasInvalid);
+    nextButton.disabled = !(localValid && !hasInvalid && emailIsValid);
   }
 
-  // Company info validations
   function validateCompanyInfo() {
     let valid = true;
 
-    // Company Name: required, alphanumeric + space . & -
     const companyName = companyNameInput.value.trim();
     if (!/^[A-Za-z0-9\s.\-&]{2,100}$/.test(companyName)) {
       companyNameInput.classList.add('is-invalid');
@@ -191,7 +179,6 @@ document.addEventListener("DOMContentLoaded", () => {
       companyNameInput.nextElementSibling.textContent = '';
     }
 
-    // Company Email
     const compEmail = companyEmailInput.value.trim();
     if (!emailPattern.test(compEmail)) {
       companyEmailInput.classList.add('is-invalid');
@@ -202,12 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
       companyEmailInput.nextElementSibling.textContent = '';
     }
 
-    // Business Number group
-    const businessValid = /^\d{9}$/.test(businessNumberInput.value.trim());
+    const bussinessValid = /^\d{9}$/.test(bussinessNumberInput.value.trim()); // updated var name
     const piValid = /^[A-Z]{2}$/.test(piNumberInput.value.trim().toUpperCase());
     const refValid = /^\d{4}$/.test(referenceNumberInput.value.trim());
 
-    if (!businessValid || !piValid || !refValid) {
+    if (!bussinessValid || !piValid || !refValid) {
       bnGroup.querySelectorAll('input').forEach(inp => inp.classList.add('is-invalid'));
       if (bnFeedback) bnFeedback.textContent = 'Enter a valid Business Number (e.g. 123456789 RP 0001)';
       valid = false;
@@ -216,15 +202,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (bnFeedback) bnFeedback.textContent = '';
     }
 
-    // Payroll year (dropdown) required
-    if (!payrollyearInput.value) {
-      payrollyearInput.classList.add('is-invalid');
+    if (!payrolYearInput.value) {  // updated var name
+      payrolYearInput.classList.add('is-invalid');
       valid = false;
     } else {
-      payrollyearInput.classList.remove('is-invalid');
+      payrolYearInput.classList.remove('is-invalid');
     }
 
-    // Industry Type required
     const industryVal = industrytypeInput.value.trim();
     if (!industryVal) {
       industrytypeInput.classList.add('is-invalid');
@@ -238,9 +222,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return valid;
   }
 
-  // Address validations
   function validateAddress() {
     let valid = true;
+
+    const addressLine1Input = document.getElementById("address_line1");
+    const addressLine2Input = document.getElementById("address_line2");
+    const cityInput = document.getElementById("city");
+    const postalcodeInput = document.getElementById("postal_code");
+    const provinceInput = document.getElementById("province");
+    const countryInput = document.getElementById("country");
 
     if (!addressLine1Input.value.trim()) {
       addressLine1Input.classList.add('is-invalid');
@@ -269,13 +259,12 @@ document.addEventListener("DOMContentLoaded", () => {
       cityInput.nextElementSibling.textContent = '';
     }
 
-    // Postal code uppercase + pattern
     const postalVal = postalcodeInput.value.trim().toUpperCase();
     postalcodeInput.value = postalVal;
 
     if (!postalcodePattern.test(postalVal)) {
       postalcodeInput.classList.add('is-invalid');
-      postalcodeInput.nextElementSibling.textContent = 'Postal code must be in format A1B2C3.';
+      postalcodeInput.nextElementSibling.textContent = 'Postal code must be in format A1B 2C3.';
       valid = false;
     } else {
       postalcodeInput.classList.remove('is-invalid');
@@ -304,22 +293,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Payroll Year Dropdown Setup ---
-  if (payrollyearInput) {
+  if (payrolYearInput) {
     const currentYear = new Date().getFullYear();
+    payrolYearInput.innerHTML = ''; // clear options
     for (let y = currentYear; y <= currentYear + 1; y++) {
       const option = document.createElement('option');
       option.value = y;
       option.textContent = y;
-      payrollyearInput.appendChild(option);
+      payrolYearInput.appendChild(option);
     }
   }
 
   // --- Event Listeners ---
 
-  // Basic Info inputs
   fullNameInput.addEventListener('input', () => {
     const val = fullNameInput.value.trim();
-    // local regex check for letters + spaces only
     if (!/^[A-Za-z\s]*$/.test(val)) {
       fullNameInput.classList.add('is-invalid');
       fullNameFeedback.textContent = 'Only letters and spaces allowed.';
@@ -342,7 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Async AJAX check
     debouncedFullNameCheck(val);
   });
 
@@ -391,112 +378,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Tab navigation (next/prev) ---
 
-  // Enable next tab only if validation passes for current tab
- document.querySelectorAll('.next-tab').forEach(button => {
-  button.addEventListener('click', () => {
-    const currentTab = button.closest('.tab-pane');
-    let valid = true;
+  document.querySelectorAll('.next-tab').forEach(button => {
+    button.addEventListener('click', () => {
+      const currentTab = button.closest('.tab-pane');
+      let valid = true;
 
-    if (currentTab.id === 'basic') {
-      valid = validateBasicInfoLocal();
-      checkEnableNext();
-    } else if (currentTab.id === 'company') {
-      valid = validateCompanyInfo();
-    } else if (currentTab.id === 'address') {
-      valid = validateAddress();
-    }
+      if (currentTab.id === 'basic') {
+        valid = validateBasicInfoLocal();
+        checkEnableNext();
 
-    if (valid) {
-      // Show the next tab manually by ID instead of assuming order
-      let nextTabId = null;
-      if (currentTab.id === 'basic') nextTabId = 'company';
-      else if (currentTab.id === 'company') nextTabId = 'address';
+        // Block tab switch if email is invalid (already registered)
+        if (!emailIsValid) {
+          emailInput.classList.add('is-invalid');
+          if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = 'Email is already registered.';
+          nextButton.disabled = true;
+          return;  // Prevent next tab
+        }
+      } else if (currentTab.id === 'company') {
+        valid = validateCompanyInfo();
+      } else if (currentTab.id === 'address') {
+        valid = validateAddress();
+      }
 
-      if (nextTabId) {
-        const nextTabLink = document.querySelector(`#onboardingTabs .nav-link[data-bs-target="#${nextTabId}"]`);
-        if (nextTabLink) {
-          nextTabLink.disabled = false;
-          new bootstrap.Tab(nextTabLink).show();
+      if (valid) {
+        let nextTabId = null;
+        if (currentTab.id === 'basic') nextTabId = 'company';
+        else if (currentTab.id === 'company') nextTabId = 'address';
+
+        if (nextTabId) {
+          const nextTabLink = document.querySelector(`#onboardingTabs .nav-link[data-bs-target="#${nextTabId}"]`);
+          if (nextTabLink) {
+            nextTabLink.disabled = false;
+            new bootstrap.Tab(nextTabLink).show();
+          }
         }
       }
-    }
+    });
   });
-});
 
-  // Prev tab buttons - just go back, no validation
   document.querySelectorAll('.prev-tab').forEach(button => {
-  button.addEventListener('click', () => {
-    const currentTab = button.closest('.tab-pane');
-    let prevTabId = null;
+    button.addEventListener('click', () => {
+      const currentTab = button.closest('.tab-pane');
+      let prevTabId = null;
 
-    if (currentTab.id === 'company') prevTabId = 'basic';
-    else if (currentTab.id === 'address') prevTabId = 'company';
+      if (currentTab.id === 'company') prevTabId = 'basic';
+      else if (currentTab.id === 'address') prevTabId = 'company';
 
-    if (prevTabId) {
-      const prevTabLink = document.querySelector(`#onboardingTabs .nav-link[data-bs-target="#${prevTabId}"]`);
-      if (prevTabLink) {
-        prevTabLink.disabled = false;
-        new bootstrap.Tab(prevTabLink).show();
+      if (prevTabId) {
+        const prevTabLink = document.querySelector(`#onboardingTabs .nav-link[data-bs-target="#${prevTabId}"]`);
+        if (prevTabLink) {
+          prevTabLink.disabled = false;
+          new bootstrap.Tab(prevTabLink).show();
+        }
       }
-    }
+    });
   });
-});
 
   // --- Final form submit validation ---
   const form = document.getElementById('onboardingForm');
-  const tabContents = [...document.querySelectorAll('.tab-pane')];
 
-  form.addEventListener('submit', e => {
-    // Validate all tabs before submit
-    for (const tabPane of tabContents) {
-      let valid = true;
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
 
-      if (tabPane.id === 'basic') valid = validateBasicInfoLocal();
-      else if (tabPane.id === 'company') valid = validateCompanyInfo();
-      else if (tabPane.id === 'address') valid = validateAddress();
-
-      if (!valid) {
-        e.preventDefault();
-        // Show the invalid tab
-        const index = tabContents.indexOf(tabPane);
-        const tabs = [...document.querySelectorAll('#onboardingTabs .nav-link')];
-        if (tabs[index]) new bootstrap.Tab(tabs[index]).show();
-        break;
-      }
+    // Run all validations before submit
+    const isBasicValid = validateBasicInfoLocal();   // Note: AJAX email check already updated emailIsValid
+    if (!emailIsValid) {
+      emailInput.classList.add('is-invalid');
+      if (emailInput.nextElementSibling) emailInput.nextElementSibling.textContent = 'Email is already registered.';
     }
-  });
 
-  // --- Initial Setup ---
-  nextButton.disabled = true;
+    const isCompanyValid = validateCompanyInfo();
+    const isAddressValid = validateAddress();
 
-  // Enable all tabs nav links initially (optional)
-  document.querySelectorAll('#onboardingTabs .nav-link').forEach(t => t.disabled = false);
-
-  // Populate payroll year dropdown
-  if (payrollyearInput) {
-    const currentYear = new Date().getFullYear();
-    payrollyearInput.innerHTML = ''; // clear options
-    for (let y = currentYear; y <= currentYear + 1; y++) {
-      const option = document.createElement('option');
-      option.value = y;
-      option.textContent = y;
-      payrollyearInput.appendChild(option);
-    }
-  }
-
-  document.getElementById('onboardingForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Always prevent default first
-
-    const isBasicValid = await validateBasicInfoLocal();     // Includes AJAX email check
-    const isCompanyValid = validateCompanyInfo();            // CRA & required fields
-    const isAddressValid = validateAddress();                // Postal code & required
-
-    // Only submit if all valid
-    if (isBasicValid && isCompanyValid && isAddressValid) {
-      this.submit();  // ✅ Now safe to submit
+    if (isBasicValid && emailIsValid && isCompanyValid && isAddressValid) {
+      form.submit();
     } else {
-      // ❌ Show the first invalid tab
-      if (!isBasicValid) {
+      if (!isBasicValid || !emailIsValid) {
         const tab = document.querySelector('button[data-bs-target="#basic"]');
         tab.disabled = false;
         new bootstrap.Tab(tab).show();
@@ -511,4 +468,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // --- Initial Setup ---
+  nextButton.disabled = true;
+
+  // Enable all nav tabs initially (optional)
+  document.querySelectorAll('#onboardingTabs .nav-link').forEach(t => t.disabled = false);
+
+  // Populate payroll year dropdown
+  if (payrolYearInput) {
+    const currentYear = new Date().getFullYear();
+    payrolYearInput.innerHTML = '';
+    for (let y = currentYear; y <= currentYear + 1; y++) {
+      const option = document.createElement('option');
+      option.value = y;
+      option.textContent = y;
+      payrolYearInput.appendChild(option);
+    }
+  }
 });

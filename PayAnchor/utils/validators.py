@@ -1,22 +1,23 @@
 import re
-import django.core.exceptions import ValidationError
-import datetime import datetime
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
+from datetime import datetime
 
-def validate_full_name(name);
-name = name.strip()
+def validate_full_name(name):
+    name = name.strip()
     if not name:
-        raise ValidationError("Full Name is Required")
+        raise ValidationError("Full Name is required.")
     if len(name) < 5 or len(name) > 100:
         raise ValidationError("Full name must be between 5 and 100 characters.")
-    if not re.fullmatch(r'^[A-Za-z\s]+$', name):
-        raise ValidationError("Full name must only contain letters and spaces.")
+    if not re.fullmatch(r"^[A-Za-z\s'-]+$", name):
+        raise ValidationError("Full name must only contain letters, spaces, hyphens, or apostrophes.")
 
 def validate_email_format(email):
     email = email.strip().lower()
     if not email:
         raise ValidationError("Email is required.")
-    if not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", email):
-        raise ValidationError("Invalid email format.")
+    validator = EmailValidator(message="Invalid email format.")
+    validator(email)
 
 def validate_password_strength(password):
     if not password:
@@ -33,11 +34,14 @@ def validate_password_strength(password):
         raise ValidationError("Password must contain a special character.")
 
 def validate_company_name(name):
-    name=name.strip()
+    name = name.strip()
     if not name or len(name) < 2 or len(name) > 100:
         raise ValidationError("Company name must be between 2 and 100 characters.")
     if not re.fullmatch(r'^[A-Za-z0-9\s.\-&/]+$', name):
         raise ValidationError("Invalid characters in company name.")
+
+def validate_company_email(email):
+    validate_email_format(email)
 
 def validate_business_number(bn, pi, ref):
     if not re.fullmatch(r'^\d{9}$', bn):
@@ -49,16 +53,30 @@ def validate_business_number(bn, pi, ref):
 
 def validate_postal_code(code):
     code = code.strip().upper()
-    if not re.fullmatch(r'^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$', code):
+    if not re.fullmatch(r'^[A-Z]\d[A-Z][ -]?\d[A-Z]\d$', code):
         raise ValidationError("Invalid Canadian postal code format.")
 
-def validate_year(year):
+def validate_payroll_year(year):
     year = year.strip()
     current = datetime.now().year
-    if int(year) not in [current, current + 1]:
+    if not year.isdigit() or int(year) not in [current, current + 1]:
         raise ValidationError("Payroll year must be current or next year.")
 
 def validate_required(value, field_name):
-    if not value.strip():
+    if not value or not value.strip():
         raise ValidationError(f"{field_name} is required.")
     return value.strip()
+
+def validate_alpha_space(value, field_name):
+    value = value.strip()
+    if not value:
+        raise ValidationError(f"{field_name} is required.")
+    if not re.fullmatch(r'^[A-Za-z\s\-]+$', value):
+        raise ValidationError(f"{field_name} must contain only letters, spaces, or hyphens.")
+
+def validate_address_line(line, field_name):
+    line = line.strip()
+    if not line:
+        raise ValidationError(f"{field_name} is required.")
+    if not re.fullmatch(r'^[A-Za-z0-9\s,.\-#]+$', line):
+        raise ValidationError(f"{field_name} contains invalid characters.")
