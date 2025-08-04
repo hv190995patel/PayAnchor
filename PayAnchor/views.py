@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from .models import ClientUser
+import logging
+logger = logging.getLogger(__name__)
+
 from .utils.validators import (
     validate_full_name, validate_email_format, validate_password_strength,
     validate_company_name, validate_company_email,
@@ -12,6 +15,10 @@ from .utils.validators import (
     validate_required, validate_postal_code,
     validate_alpha_space, validate_address_line
 )
+
+def my_view(request):
+    if request.user.is_authenticated:
+        logger.info(f"User {request.user.username} is logged in")
 
 def Home(request):
     return render(request, 'Home.html', {'full_name': request.user.full_name})
@@ -38,6 +45,7 @@ def Login(request):
 
 @csrf_protect
 def ClientOnboarding(request):
+    
     if request.method == "POST":
         full_name = request.POST.get('full_name', '').strip()
         password = request.POST.get('password', '').strip()

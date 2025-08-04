@@ -27,8 +27,12 @@
       <div class="tab-pane fade show active" id="basic" role="tabpanel">
         <div class="mb-3">
           <label class="form-label">Full Name</label>
-          <input type="text" autocomplete="off"  name="full_name" id="fullNameInput" class="form-control" required maxlength="100"/>
-          <div class="invalid-feedback" id="fullNameFeedback">Full name is required.</div>
+          <input type="text" autocomplete="off"  name="full_name" id="fullNameInput" class="form-control {% if form.full_name.errors %}is-invalid{% endif %}" value="{{ form.full_name.value|default_if_none:'' }}" required maxlength="100"/>
+          <div class="invalid-feedback" id="fullNameFeedback">
+            {% for error in form.full_name.errors %}
+              {{ error }}
+            {% endfor %}
+            Full name is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Email</label>
