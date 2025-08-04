@@ -10,6 +10,12 @@ from .models import ClientUser
 from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
 import re
+from datetime import datetime
+
+def your_view(request):
+    return render(request, 'your_template.html', {
+        'timestamp': datetime.now().timestamp()
+    })
 
 
 def Home(request):

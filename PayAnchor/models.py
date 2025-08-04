@@ -8,7 +8,7 @@ class ClientUser(AbstractUser):
     email = models.EmailField(unique=True)
     company_name = models.CharField(max_length=100, default="N/A")
     company_email = models.EmailField(max_length=100, default="noreply@example.com")
-    bussiness_number = models.CharField(max_length=9, default='000000000')
+    bussiness_number = models.CharField(max_length=15, default='000000000')
     payrol_year = models.CharField(max_length=4, default='2025')
     industry_type = models.CharField(max_length=100, default="N/A")
     address_line1 = models.CharField(max_length=255, default="N/A")

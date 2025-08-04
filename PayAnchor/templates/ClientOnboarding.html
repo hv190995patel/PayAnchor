@@ -15,24 +15,24 @@
       <button class="nav-link" id="company-tab" data-bs-toggle="tab" data-bs-target="#company" type="button" role="tab" disabled>Company Info</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tabn" disabled >Address</button>
+      <button class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tab" disabled>Address</button>
     </li>
   </ul>
 
-  <form method="POST" id="onboardingForm" novalidate>
+  <form method="POST" id="onboardingForm" autocomplete="off" novalidate>
     {% csrf_token %}
     <div class="tab-content" id="onboardingTabsContent">
 
-      <!-- Basic Info -->
+      <!-- Basic Info Tab -->
       <div class="tab-pane fade show active" id="basic" role="tabpanel">
         <div class="mb-3">
           <label class="form-label">Full Name</label>
-          <input type="text" name="full_name" id="fullNameInput" class="form-control" required maxlength="100"/>
+          <input type="text" autocomplete="off"  name="full_name" id="fullNameInput" class="form-control" required maxlength="100"/>
           <div class="invalid-feedback" id="fullNameFeedback">Full name is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Email</label>
-          <input type="email" name="email" id="emailInput" class="form-control" required />
+          <input type="email" autocomplete="off"  name="email" id="emailInput" class="form-control" required />
           <div class="invalid-feedback">Valid email is required.</div>
         </div>
         <div class="mb-3">
@@ -48,7 +48,7 @@
         <button type="button" class="btn btn-primary next-tab" id="nextBasic">Next Step</button>
       </div>
 
-      <!-- Company Info -->
+      <!-- Company Info Tab-->
       <div class="tab-pane fade" id="company" role="tabpanel">
         <div class="mb-3">
           <label class="form-label">Company Name</label>
@@ -61,13 +61,17 @@
           <div class="invalid-feedback">Valid company email is required.</div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Business Number</label>
-          <input type="text" name="bussiness_number" class="form-control" required maxlength="9"/>
-          <div class="invalid-feedback">Business number is required.</div>
+          <label for="businessNumberInput" class="form-label">Business Number</label>
+          <div class="d-flex gap-2">
+            <input type="number" name="bussiness_number" class="form-control" placeholder="Business Number" required maxlength="9"/>
+            <input type="text" name="pi_number" class="form-control" placeholder="PI Number" required maxlength="2"/>
+            <input type="number" name="reference_number" class="form-control" placeholder="Reference Number" required maxlength="4"/>
+          </div>
+          <div class="invalid-feedback d-block" id="bnFeedback"></div>
         </div>
         <div class="mb-3">
           <label class="form-label">Payroll Year</label>
-          <input type="number" name="payrol_year" class="form-control" required />
+          <select name="payrol_year" id="yearDropdown" class="form-control" required> </select>
           <div class="invalid-feedback">Payroll year is required.</div>
         </div>
         <div class="mb-3">
@@ -81,37 +85,43 @@
 
       <!-- Address -->
       <div class="tab-pane fade" id="address" role="tabpanel">
-        <div class="mb-3">
+          <div class="mb-3">
           <label class="form-label">Address Line 1</label>
-          <input type="text" name="address_line1" class="form-control" required />
+          <input type="text" name="address_line1" id="address_line1" class="form-control" required />
           <div class="invalid-feedback">Address Line 1 is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Address Line 2</label>
-          <input type="text" name="address_line2" class="form-control" />
+          <input type="text" name="address_line2" id="address_line2" class="form-control" />
+          <div class="invalid-feedback">Address Line 2 is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">City</label>
-          <input type="text" name="city" class="form-control" required />
+          <input type="text" name="city" id="city" class="form-control" required />
           <div class="invalid-feedback">City is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Postal Code</label>
-          <input type="number" name="postal_code" class="form-control" required />
+          <input type="text" name="postal_code" id="postal_code" class="form-control" required />
           <div class="invalid-feedback">Postal code is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Province</label>
-          <input type="text" name="province" class="form-control" required />
+          <input type="text" name="province" id="province" class="form-control" required />
           <div class="invalid-feedback">Province is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label">Country</label>
-          <input type="text" name="country" class="form-control" required />
+          <input type="text" name="country" id="country" class="form-control" required />
           <div class="invalid-feedback">Country is required.</div>
         </div>
+
+        <div>
+          <input type="submit" value="Register" class="btn btn-success mt-2" />
         <button type="button" class="btn btn-secondary prev-tab">Back</button>
-        <input type="submit" value="Register" class="btn btn-success mt-2" />
+        </div>
+        
+        
       </div>
     </div>
   </form>
@@ -120,7 +130,7 @@
     Already have an account? <a href="/Login">Login here</a>
   </p>
 </div>
-
+<script src="{% static 'js/client_onboarding.js' %}?v={{ timestamp }}"></script>
 <script src="{% static 'js/client_onboarding.js' %}"></script>
 
 {% endblock %}
