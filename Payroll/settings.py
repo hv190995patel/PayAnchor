@@ -100,6 +100,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Custom user model
 AUTH_USER_MODEL = 'PayAnchor.ClientUser'
 
+LOGIN_URL = '/PayAnchor/'  # or the URL path where your Login view is accessible
+
+
 
 # Message tags (for Bootstrap alert classes)
 MESSAGE_TAGS = {

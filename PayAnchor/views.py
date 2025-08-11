@@ -1,10 +1,20 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
 from .models import ClientUser
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('PayAnchor/', include('PayAnchor.urls')),
+    # or path('PayAnchor/', views.Login, name='Login'),
+]
+
 from .utils.validators import (
     validate_full_name, validate_email_format, validate_password_strength,
     validate_company_name, validate_company_email,
@@ -12,16 +22,8 @@ from .utils.validators import (
     validate_required, validate_postal_code,
     validate_alpha_space, validate_address_line
 )
+import datetime
 
-def Home(request):
-    if not request.user.is_authenticated:
-        return redirect('Login')
-
-    clients = ClientUser.objects.all()
-    return render(request, 'Home.html', {
-        'full_name': request.user.full_name,
-        'clients': clients
-    })
 @csrf_protect
 def Login(request):
     if request.method == "POST":
@@ -36,15 +38,59 @@ def Login(request):
 
         if user:
             auth_login(request, user)
-            return redirect('Home')
+            return redirect('Homepage')
         else:
             return render(request, 'Login.html', {'Error': 'Invalid login credentials'})
 
     return render(request, 'Login.html')
 
+@login_required
+def Homepage(request):
+    role = getattr(request.user.profile, 'role', None)  # safer access
+    if role == 'admin':
+        return redirect('admin_home')
+    elif role == 'client':
+        return redirect('client_home')
+    elif role =='subclient':
+        return redirect('subclient_home')
+    elif role == 'employee':
+        return redirect('employee_home')
+    else:
+
+        # return HttpResponseForbidden("Unauthorized")
+        return HttpResponseForbidden(f"Unauthorized: Your role is '{user.profile.role}'")
+
+@login_required
+def admin_home(request):
+    role = getattr(request.user.profile, 'role', None)
+    if role != 'admin':
+        return HttpResponseForbidden(f"Unauthorized: Your role is '{role}'")
+    return render(request, 'admin_home.html', {'current_year': datetime.datetime.now().year})
+
+@login_required
+def client_home(request):
+    role = getattr(request.user.profile, 'role', None)
+    if role != 'client':
+        return HttpResponseForbidden(f"Unauthorized: Your role is '{role}'")
+    return render(request, 'client_home.html', {'current_year': datetime.datetime.now().year})
+
+
+@login_required
+def subclient_home(request):
+    if request.user != 'subclient':
+        return HttpResponseForbidden("Unauthorized")
+    return render(request, 'subclient_home.html', {'current_year': datetime.datetime.now().year}) 
+
+@login_required
+def employee_home(request):
+    if request.user != 'employee':
+        return HttpResponseForbidden("Unauthorized")
+    return render(request, 'employee_home.html', {'current_year': datetime.datetime.now().year}) 
+
 @csrf_protect
+@login_required
 def ClientOnboarding(request):
-    
+
     if request.method == "POST":
         full_name = request.POST.get('full_name', '').strip()
         password = request.POST.get('password', '').strip()
@@ -88,26 +134,27 @@ def ClientOnboarding(request):
             if ClientUser.objects.filter(email=email).exists():
                 raise ValueError("Email already exists.")
 
-            user = ClientUser.objects.create_user(
-                username=email,
-                full_name=full_name,
-                password=password,
-                email=email,
-                company_name=company_name,
-                company_email=company_email,
-                bussiness_number=bussiness_number,
-                pi_number=pi_number,
-                reference_number=reference_number,
-                payrol_year=payroll_year,
-                industry_type=industry_type,
-                address_line1=address_line1,
-                address_line2=address_line2,
-                city=city,
-                postal_code=postal_code,
-                province=province,
-                country=country
-            )
-            user.save()
+            with transaction.atomic():    
+                user = ClientUser.objects.create_user(
+                    username=email,
+                    full_name=full_name,
+                    password=password,
+                    email=email,
+                    company_name=company_name,
+                    company_email=company_email,
+                    bussiness_number=bussiness_number,
+                    pi_number=pi_number,
+                    reference_number=reference_number,
+                    payrol_year=payroll_year,
+                    industry_type=industry_type,
+                    address_line1=address_line1,
+                    address_line2=address_line2,
+                    city=city,
+                    postal_code=postal_code,
+                    province=province,
+                    country=country
+                )
+                Profile.objects.create(user=user, role='client')
             messages.success(request, "User registered successfully. You can now log in.")
             return redirect('Login')
 
@@ -139,5 +186,5 @@ def check_fullname(request):
         return JsonResponse({'valid': False, 'error': str(e)})
 
 def Logout(request):
-    logout(request)
-    return redirect('Login')
+        logout(request)
+        return redirect('Login')
