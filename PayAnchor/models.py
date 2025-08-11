@@ -21,5 +21,6 @@ class ClientUser(AbstractUser):
     country = models.CharField(max_length=100, default="N/A")
     
 
+
     def __str__(self):
         return self.email

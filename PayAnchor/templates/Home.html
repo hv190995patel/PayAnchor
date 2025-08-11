@@ -99,7 +99,43 @@
           <h2 class="mb-4">Welcome, {{ full_name }}!</h2>
           <a href="{% url 'Logout' %}" class="logout-btn">Logout</a>
         </div>
+
+         <div class="mt-5">
+          <h3 class="mb-3">Registered Clients</h3>
+          <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Company Name</th>
+                  <th>Payroll Year</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for client in clients %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ client.full_name }}</td>
+                  <td>{{ client.email }}</td>
+                  <td>{{ client.company_name }}</td>
+                  <td>{{ client.payrol_year }}</td>
+                  <td>{{ client.isactive }}</td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center">No clients found.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <!-- Footer -->
