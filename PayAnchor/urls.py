@@ -6,6 +6,7 @@ urlpatterns = [
     path('PayAnchor/', views.Login, name='Login'),
     path('Homepage/', views.Homepage, name='Homepage'),
     path('admin/', views.admin_home, name='admin_home'),
+    path('clients/', views.client_list, name='client_list'),    # Paginated client list
     path('client/', views.client_home, name='client_home'),
     path('subclient/', views.subclient_home, name='subclient_home'),
     path('employee/', views.employee_home, name='employee_home'),

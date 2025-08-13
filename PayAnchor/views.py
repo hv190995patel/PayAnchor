@@ -5,9 +5,14 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
-from .models import ClientUser
+from .models import ClientUser, Profile
 from django.contrib import admin
 from django.urls import path, include
+from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
+from django.db import transaction
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -64,27 +69,39 @@ def Homepage(request):
 def admin_home(request):
     role = getattr(request.user.profile, 'role', None)
     if role != 'admin':
-        return HttpResponseForbidden(f"Unauthorized: Your role is '{role}'")
-    return render(request, 'admin_home.html', {'current_year': datetime.datetime.now().year})
+        return HttpResponseForbidden("Unauthorized Access, Please Contact Administrator")
+
+    total_clients = ClientUser.objects.count()
+    clients = ClientUser.objects.all().order_by('id')[:5]
+
+    context = {
+        'total_clients': total_clients,
+        'clients': clients,
+        'current_year': datetime.datetime.now().year,
+    }
+
+    return render(request, 'admin_home.html', context)
 
 @login_required
 def client_home(request):
     role = getattr(request.user.profile, 'role', None)
     if role != 'client':
-        return HttpResponseForbidden(f"Unauthorized: Your role is '{role}'")
+        return HttpResponseForbidden(f"Unauthorized Access, Please Contact Administraor")
     return render(request, 'client_home.html', {'current_year': datetime.datetime.now().year})
 
 
 @login_required
 def subclient_home(request):
-    if request.user != 'subclient':
-        return HttpResponseForbidden("Unauthorized")
+    role = getattr(request.user.profile, 'role', None)
+    if role != 'subclient':
+        return HttpResponseForbidden(f"Unauthorized Access, Please Contact Administraor")
     return render(request, 'subclient_home.html', {'current_year': datetime.datetime.now().year}) 
 
 @login_required
 def employee_home(request):
-    if request.user != 'employee':
-        return HttpResponseForbidden("Unauthorized")
+    role = getattr(request.user.profile, 'role', None)
+    if role != 'employee':
+        return HttpResponseForbidden(f"Unauthorized Access, Please Contact Administraor")
     return render(request, 'employee_home.html', {'current_year': datetime.datetime.now().year}) 
 
 @csrf_protect
@@ -184,6 +201,15 @@ def check_fullname(request):
         return JsonResponse({'valid': True})
     except Exception as e:
         return JsonResponse({'valid': False, 'error': str(e)})
+
+def client_list(request):
+    clients = ClientUser.objects.all().order_by('id')  # or order as you prefer
+    paginator = Paginator(clients, 20)  
+
+    page_number = request.GET.get('page',1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'client_list.html', {'page_obj': page_obj})
 
 def Logout(request):
         logout(request)
