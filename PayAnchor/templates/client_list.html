@@ -9,6 +9,7 @@
     <tr>
       <th>ID</th>
       <th>Username</th>
+      <th>Company Name</th>
       <th>Email</th>
       <th>Actions</th>
       <!-- Add other fields as needed -->
@@ -19,13 +20,10 @@
     <tr>
       <td>{{ client.id }}</td>
       <td>{{ client.username }}</td>
+      <td>{{ client.company_name }}</td>
       <td>{{ client.email }}</td>
       <td>
-        <a href="" class="btn btn-primary btn-sm">Edit</a>
-        <form method="POST" action="" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this client?');">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-        </form>
+        <a href="" class="btn btn-primary btn-sm">VIEW</a>
       </td>
     </tr>
     {% empty %}

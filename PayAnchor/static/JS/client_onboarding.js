@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullName = fullNameInput.value.trim();
     if (!/^[A-Za-z\s]{5,100}$/.test(fullName)) {
       fullNameInput.classList.add('is-invalid');
-      fullNameFeedback.textContent = 'Full name must be 5-100 letters and spaces only.';
+      fullNameFeedback.textContent = 'Full name must be 5-100 letters2 and spaces only.';
       valid = false;
     } else {
       fullNameInput.classList.remove('is-invalid');
